@@ -21,7 +21,8 @@ def scan():
     # Allowed safe arguments
     safe_args = re.sub(r'[;&|`$]', '', args)
 
-    cmd = f"nmap {safe_args} {target}"
+    # Railway containers lack CAP_NET_RAW - force unprivileged mode
+    cmd = f"nmap --unprivileged {safe_args} {target}"
 
     try:
         result = subprocess.run(
@@ -51,7 +52,8 @@ def quick_scan():
     if not target:
         return jsonify({'error': 'target required'}), 400
 
-    cmd = f"nmap -T4 --top-ports 100 {target}"
+    # Railway containers lack CAP_NET_RAW - force unprivileged + TCP connect
+    cmd = f"nmap --unprivileged -sT -T4 --top-ports 100 {target}"
 
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
